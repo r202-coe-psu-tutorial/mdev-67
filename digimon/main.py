@@ -65,7 +65,7 @@ async def created_item(item: CreatedItem) -> Item:
     with Session(engine) as session:
         session.add(dbitem)
         session.commit()
-    return Item.parse_obj(dbitem.dict())
+    return dbitem
 
 
 @app.get("/items")
