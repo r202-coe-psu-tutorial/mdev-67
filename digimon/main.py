@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from typing import Optional
 
 from pydantic import BaseModel
+from sqlmodel import Field, SQLModel, create_engine, Session
 
 
 class BaseItem(BaseModel):
@@ -20,11 +21,32 @@ class Item(BaseItem):
     id: int
 
 
+class DBItem(Item, SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+
 class ItemList(BaseModel):
     items: list[Item]
     page: int
     page_size: int
     size_per_page: int
+
+
+connect_args = {}
+
+engine = create_engine(
+    "postgresql+pg8000://postgres:123456@localhost/digimondb",
+    echo=True,
+    connect_args=connect_args,
+)
+
+
+SQLModel.metadata.create_all(engine)
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session
 
 
 app = FastAPI()
@@ -39,8 +61,11 @@ def root():
 async def created_item(item: CreatedItem) -> Item:
     print("created_item", item)
     data = item.dict()
-    data["id"] = 1
-    return Item.parse_obj(data)
+    dbitem = DBItem(**data)
+    with Session(engine) as session:
+        session.add(dbitem)
+        session.commit()
+    return Item.parse_obj(dbitem.dict())
 
 
 @app.get("/items")
