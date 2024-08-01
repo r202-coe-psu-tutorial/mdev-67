@@ -32,6 +32,7 @@ class DBItem(Item, SQLModel, table=True):
 
 
 class ItemList(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     items: list[Item]
     page: int
     page_size: int
@@ -79,7 +80,10 @@ async def create_item(item: CreatedItem) -> Item:
 
 @app.get("/items")
 async def read_items() -> ItemList:
-    return ItemList()
+    with Session(engine) as session:
+        items = session.exec(select(DBItem)).all()
+
+    return ItemList.from_orm(dict(items=items, page_size=0, page=0, size_per_page=0))
 
 
 @app.get("/items/{item_id}")
