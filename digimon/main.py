@@ -66,7 +66,7 @@ def root():
 
 @app.post("/items")
 async def create_item(item: CreatedItem) -> Item:
-    print("created_item", item)
+    print("create_item", item)
     data = item.dict()
     dbitem = DBItem(**data)
     with Session(engine) as session:
@@ -106,7 +106,6 @@ async def update_item(item_id: int, item: UpdatedItem) -> Item:
         session.commit()
         session.refresh(db_item)
 
-    # return Item.parse_obj(dbitem.dict())
     return Item.from_orm(db_item)
 
 
