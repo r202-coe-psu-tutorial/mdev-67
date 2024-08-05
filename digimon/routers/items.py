@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
-from typing import Optional
+from typing import Optional, Annotated
 
 from sqlmodel import Field, SQLModel, Session, select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .. import models
 
@@ -10,10 +11,11 @@ router = APIRouter(prefix="/items")
 
 
 @router.get("")
-async def read_items() -> models.ItemList:
-    items = []
-    with Session(models.engine) as session:
-        items = session.exec(select(models.DBItem)).all()
+async def read_items(
+    session: Annotated[AsyncSession, Depends(models.get_session)]
+) -> models.ItemList:
+    result = await session.exec(select(models.DBItem))
+    items = result.all()
 
     return models.ItemList.from_orm(
         dict(items=items, page_size=0, page=0, size_per_page=0)
@@ -21,50 +23,53 @@ async def read_items() -> models.ItemList:
 
 
 @router.post("")
-async def create_item(item: models.CreatedItem) -> models.Item | None:
-    print("create_item", item)
+async def create_item(
+    item: models.CreatedItem,
+    session: Annotated[AsyncSession, Depends(models.get_session)],
+) -> models.Item | None:
     data = item.dict()
     dbitem = models.DBItem(**data)
-    with Session(models.engine) as session:
-        session.add(dbitem)
-        session.commit()
-        session.refresh(dbitem.merchant)
-        print(">>>>>>>>>>>", dbitem)
-        # print("xxxx", dbitem.merchant)
+    session.add(dbitem)
+    await session.commit()
+    await session.refresh(dbitem)
 
     return models.Item.from_orm(dbitem)
 
 
 @router.get("/{item_id}")
-async def read_item(item_id: int) -> models.Item:
-    with Session(models.engine) as session:
-        db_item = session.get(DBItem, item_id)
-        if db_item:
-            print(">>>", db_item)
-            return models.Item.from_orm(db_item)
+async def read_item(
+    item_id: int, session: Annotated[AsyncSession, Depends(models.get_session)]
+) -> models.Item:
+    db_item = await session.get(DBItem, item_id)
+    if db_item:
+        return models.Item.from_orm(db_item)
 
     raise HTTPException(status_code=404, detail="Item not found")
 
 
 @router.put("/{item_id}")
-async def update_item(item_id: int, item: models.UpdatedItem) -> models.Item:
+async def update_item(
+    item_id: int,
+    item: models.UpdatedItem,
+    session: Annotated[AsyncSession, Depends(models.get_session)],
+) -> models.Item:
     print("update_item", item)
     data = item.dict()
-    with Session(models.engine) as session:
-        db_item = session.get(DBItem, item_id)
-        db_item.sqlmodel_update(data)
-        session.add(db_item)
-        session.commit()
-        session.refresh(db_item)
+    db_item = await session.get(DBItem, item_id)
+    db_item.sqlmodel_update(data)
+    session.add(db_item)
+    await session.commit()
+    await session.refresh(db_item)
 
     return models.Item.from_orm(db_item)
 
 
 @router.delete("/{item_id}")
-async def delete_item(item_id: int) -> dict:
-    with Session(models.engine) as session:
-        db_item = session.get(DBItem, item_id)
-        session.delete(db_item)
-        session.commit()
+async def delete_item(
+    item_id: int, session: Annotated[AsyncSession, Depends(models.get_session)]
+) -> dict:
+    db_item = await session.get(DBItem, item_id)
+    await session.delete(db_item)
+    await session.commit()
 
     return dict(message="delete success")
