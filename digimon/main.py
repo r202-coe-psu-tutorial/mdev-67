@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .routers import router
+from .routers import init_router
 from .models import init_db
 
 
@@ -9,6 +9,6 @@ def create_app():
 
     init_db()
 
-    app.include_router(router)
+    init_router(app)
 
     return app
