@@ -2,6 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, SQLModel, create_engine, Session, select, Relationship
+
 from . import merchants
 
 
@@ -26,14 +27,14 @@ class UpdatedItem(BaseItem):
 class Item(BaseItem):
     id: int
     merchant_id: int
-    # merchant: merchants.Merchant
+    merchant: merchants.Merchant | None
 
 
-class DBItem(Item, SQLModel, table=True):
+class DBItem(BaseItem, SQLModel, table=True):
     __tablename__ = "items"
     id: int = Field(default=None, primary_key=True)
     merchant_id: int = Field(default=None, foreign_key="merchants.id")
-    # merchant: merchants.DBMerchant | None = Relationship(back_populates="items")
+    merchant: merchants.DBMerchant | None = Relationship()
 
 
 class ItemList(BaseModel):

@@ -1,14 +1,15 @@
 from fastapi import FastAPI
 
-from .routers import init_router
-from .models import init_db
+from . import models
+
+from . import routers
 
 
 def create_app():
     app = FastAPI()
 
-    init_db()
+    models.init_db()
 
-    init_router(app)
+    routers.init_router(app)
 
     return app

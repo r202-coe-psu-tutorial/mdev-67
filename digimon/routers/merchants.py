@@ -25,6 +25,7 @@ async def create_merchant(merchant: CreatedMerchant) -> Merchant:
         session.add(dbmerchant)
         session.commit()
         session.refresh(dbmerchant)
+        print(">>>>", dbmerchant)
 
     # return Merchant.parse_obj(dbmerchant.dict())
     return Merchant.from_orm(dbmerchant)

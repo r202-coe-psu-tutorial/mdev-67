@@ -1,9 +1,11 @@
-from typing import Optional
+from typing import Optional, List, TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, SQLModel, create_engine, Session, select, Relationship
 
-from . import items
+
+if TYPE_CHECKING:
+    from . import items
 
 
 class BaseMerchant(BaseModel):
@@ -24,18 +26,16 @@ class UpdatedMerchant(BaseMerchant):
 
 class Merchant(BaseMerchant):
     id: int
-    # items: items.Item
 
 
-class DBMerchant(Merchant, SQLModel, table=True):
+class DBMerchant(BaseMerchant, SQLModel, table=True):
     __tablename__ = "merchants"
     id: Optional[int] = Field(default=None, primary_key=True)
-    # items: list["DBItem"] = Relationship(back_populates="merchant")
 
 
 class MerchantList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    items: list[Merchant]
+    merchants: list[Merchant]
     page: int
     page_size: int
     size_per_page: int
