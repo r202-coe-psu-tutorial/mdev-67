@@ -36,7 +36,9 @@ async def read_item(item_id: int) -> Item:
     with Session(engine) as session:
         db_item = session.get(DBItem, item_id)
         if db_item:
+            print(">>>", db_item)
             return Item.from_orm(db_item)
+
     raise HTTPException(status_code=404, detail="Item not found")
 
 

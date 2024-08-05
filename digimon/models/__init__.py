@@ -2,8 +2,11 @@ from typing import Optional
 
 from sqlmodel import Field, SQLModel, create_engine, Session, select
 
+from . import merchants
 from . import items
+
 from .items import *
+from .merchants import *
 
 
 connect_args = {}

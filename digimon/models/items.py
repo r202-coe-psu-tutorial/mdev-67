@@ -1,7 +1,8 @@
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
-from sqlmodel import Field, SQLModel, create_engine, Session, select
+from sqlmodel import Field, SQLModel, create_engine, Session, select, Relationship
+from . import merchants
 
 
 class BaseItem(BaseModel):
@@ -11,6 +12,7 @@ class BaseItem(BaseModel):
     description: str | None = None
     price: float = 0.12
     tax: float | None = None
+    merchant_id: int | None
 
 
 class CreatedItem(BaseItem):
@@ -23,10 +25,15 @@ class UpdatedItem(BaseItem):
 
 class Item(BaseItem):
     id: int
+    merchant_id: int
+    # merchant: merchants.Merchant
 
 
 class DBItem(Item, SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    __tablename__ = "items"
+    id: int = Field(default=None, primary_key=True)
+    merchant_id: int = Field(default=None, foreign_key="merchants.id")
+    # merchant: merchants.DBMerchant | None = Relationship(back_populates="items")
 
 
 class ItemList(BaseModel):
