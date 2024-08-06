@@ -34,7 +34,7 @@ class DBItem(BaseItem, SQLModel, table=True):
     __tablename__ = "items"
     id: int = Field(default=None, primary_key=True)
     merchant_id: int = Field(default=None, foreign_key="merchants.id")
-    # merchant: merchants.DBMerchant | None = Relationship()
+    # merchant: merchants.DBMerchant | None = Relationship(back_populates="merchant")
 
 
 class ItemList(BaseModel):
