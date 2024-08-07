@@ -3,9 +3,7 @@ from typing import Optional, List, TYPE_CHECKING
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, SQLModel, create_engine, Session, select, Relationship
 
-
-if TYPE_CHECKING:
-    from . import items
+from . import users
 
 
 class BaseMerchant(BaseModel):
@@ -14,6 +12,7 @@ class BaseMerchant(BaseModel):
     name: str
     description: str | None = None
     tax_id: str | None = None
+    user_id: int | None = 0
 
 
 class CreatedMerchant(BaseMerchant):
@@ -31,6 +30,9 @@ class Merchant(BaseMerchant):
 class DBMerchant(BaseMerchant, SQLModel, table=True):
     __tablename__ = "merchants"
     id: Optional[int] = Field(default=None, primary_key=True)
+
+    user_id: int = Field(default=None, foreign_key="users.id")
+    user: users.DBUser | None = Relationship()
 
 
 class MerchantList(BaseModel):
