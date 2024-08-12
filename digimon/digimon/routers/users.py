@@ -91,23 +91,23 @@ async def update(
     current_user: models.User = Depends(deps.get_current_user),
 ) -> models.User:
 
-    user = await session.get(models.DBUser, user_id)
+    db_user = await session.get(models.DBUser, user_id)
 
-    if user:
+    if db_user:
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail="Not found this user",
         )
 
-    if not user.verify_password(password_update.current_password):
+    if not db_user.verify_password(password_update.current_password):
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
         )
 
-    user.update(**set_dict)
-    session.add(user)
+    db_user.sqlmodel_update(user_update)
+    session.add(db_user)
     await session.commit()
-    await session.refresh(user)
+    await session.refresh(db_user)
 
-    return user
+    return db_user
