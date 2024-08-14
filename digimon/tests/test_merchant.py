@@ -1,12 +1,18 @@
-from fastapi.testclient import TestClient
-
-from digimon.main import create_app
-
-client = TestClient(create_app())
+from httpx import AsyncClient
+from digimon import models
+import pytest
 
 
-def get_merchants():
-    response = client.get("/merchants")
+@pytest.mark.asyncio
+async def test_create_merchants(client: AsyncClient, user1: models.DBUser):
+    payload = {"name": "merchants", "user_id": user1.id}
+    response = await client.post("/merchants", json=payload)
 
     assert response.status_code == 200
-    print(response.json())
+
+
+@pytest.mark.asyncio
+async def test_merchants(client: AsyncClient):
+    response = await client.get("/merchants")
+
+    assert response.status_code == 200
