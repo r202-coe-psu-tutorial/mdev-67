@@ -18,9 +18,7 @@ async def create_merchant(
     current_user: Annotated[models.User, Depends(deps.get_current_user)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> models.Merchant:
-    print("create_merchant", merchant)
-    data = merchant.dict()
-    dbmerchant = models.DBMerchant.parse_obj(data)
+    dbmerchant = models.DBMerchant.model_validate(merchant)
     dbmerchant.user = current_user
     session.add(dbmerchant)
     await session.commit()
