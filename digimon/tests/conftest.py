@@ -64,7 +64,7 @@ async def example_user1(session: models.AsyncSession) -> models.DBUser:
     )
     local_session = await anext(session)
 
-    user.set_password(password)
+    await user.set_password(password)
     local_session.add(user)
     await local_session.commit()
     await local_session.refresh(user)

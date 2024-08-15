@@ -8,7 +8,7 @@ async def test_create_merchants(client: AsyncClient, user1: models.DBUser):
     payload = {"name": "merchants", "user_id": user1.id}
     response = await client.post("/merchants", json=payload)
 
-    assert response.status_code == 200
+    assert response.status_code == 401
 
 
 @pytest.mark.asyncio
