@@ -54,15 +54,17 @@ def get_session() -> models.AsyncSession:
 
 @pytest_asyncio.fixture(name="user1")
 async def example_user1(session: models.AsyncSession) -> models.DBUser:
+    password = "123456"
     user = models.DBUser(
         username="user1",
-        password="123456",
+        password=password,
         email="test@test.com",
         first_name="Firstname",
         last_name="lastname",
     )
     local_session = await anext(session)
 
+    user.set_password(password)
     local_session.add(user)
     await local_session.commit()
     await local_session.refresh(user)
