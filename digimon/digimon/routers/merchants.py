@@ -26,7 +26,7 @@ async def create_merchant(
     await session.commit()
     await session.refresh(dbmerchant)
 
-    return models.Merchant.from_orm(dbmerchant)
+    return models.Merchant.model_validate(dbmerchant)
 
 
 @router.get("")
@@ -36,7 +36,7 @@ async def read_merchants(
     result = await session.exec(select(models.DBMerchant))
     merchants = result.all()
 
-    return models.MerchantList.from_orm(
+    return models.MerchantList.model_validate(
         dict(merchants=merchants, page_size=0, page=0, size_per_page=0)
     )
 
@@ -47,7 +47,7 @@ async def read_merchant(
 ) -> models.Merchant:
     db_merchant = await session.get(models.DBMerchant, merchant_id)
     if db_merchant:
-        return models.Merchant.from_orm(db_merchant)
+        return models.Merchant.model_validate(db_merchant)
     raise HTTPException(status_code=404, detail="Merchant not found")
 
 
@@ -65,7 +65,7 @@ async def update_merchant(
     await session.commit()
     await session.refresh(db_merchant)
 
-    return models.Merchant.from_orm(db_merchant)
+    return models.Merchant.model_validate(db_merchant)
 
 
 @router.delete("/{merchant_id}")

@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 
 from typing import Any, Dict, Optional
@@ -42,30 +42,48 @@ def client_fixture(app: FastAPI) -> AsyncClient:
     # client = TestClient(app)
     # yield client
     # app.dependency_overrides.clear()
-    return AsyncClient(app=app, base_url="http://localhost")
+    return AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost")
 
 
-@pytest.fixture(name="session", scope="session")
-def get_session() -> models.AsyncSession:
+@pytest_asyncio.fixture(name="session", scope="session")
+async def get_session() -> models.AsyncIterator[models.AsyncSession]:
     settings = SettingsTesting()
     models.init_db(settings)
-    return models.get_session()
+
+    async_session = models.sessionmaker(
+        models.engine, class_=models.AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as session:
+        yield session
 
 
 @pytest_asyncio.fixture(name="user1")
 async def example_user1(session: models.AsyncSession) -> models.DBUser:
     password = "123456"
+    username = "user1"
+
+    query = await session.exec(
+        models.select(models.DBUser).where(models.DBUser.username == username).limit(1)
+    )
+    user = query.one_or_none()
+    if user:
+        return user
+
     user = models.DBUser(
-        username="user1",
+        username=username,
         password=password,
         email="test@test.com",
         first_name="Firstname",
         last_name="lastname",
     )
-    local_session = await anext(session)
 
     await user.set_password(password)
-    local_session.add(user)
-    await local_session.commit()
-    await local_session.refresh(user)
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
     return user
+
+
+@pytest_asyncio.fixture(name="token_user1")
+async def oauth_token_user1(user1: models.DBUser) -> dict:
+    pass
