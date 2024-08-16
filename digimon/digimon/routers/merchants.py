@@ -56,8 +56,8 @@ async def update_merchant(
     current_user: Annotated[models.User, Depends(deps.get_current_user)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> models.Merchant:
-    data = merchant.dict()
-    db_merchant = await session.get(DBMerchant, merchant_id)
+    data = merchant.model_dump()
+    db_merchant = await session.get(models.DBMerchant, merchant_id)
     db_merchant.sqlmodel_update(data)
     session.add(db_merchant)
     await session.commit()
@@ -72,7 +72,7 @@ async def delete_merchant(
     session: Annotated[AsyncSession, Depends(models.get_session)],
     current_user: Annotated[models.User, Depends(deps.get_current_user)],
 ) -> dict:
-    db_merchant = await session.get(DBMerchant, merchant_id)
+    db_merchant = await session.get(models.DBMerchant, merchant_id)
     await session.delete(db_merchant)
     await session.commit()
 

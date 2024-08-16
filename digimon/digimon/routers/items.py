@@ -46,8 +46,7 @@ async def create_item(
     current_user: Annotated[models.User, Depends(deps.get_current_user)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> models.Item | None:
-    data = item.dict()
-    dbitem = models.DBItem(**data)
+    dbitem = models.DBItem.validate_model(item)
     session.add(dbitem)
     await session.commit()
     await session.refresh(dbitem)
@@ -59,7 +58,7 @@ async def create_item(
 async def read_item(
     item_id: int, session: Annotated[AsyncSession, Depends(models.get_session)]
 ) -> models.Item:
-    db_item = await session.get(DBItem, item_id)
+    db_item = await session.get(models.DBItem, item_id)
     if db_item:
         return models.Item.from_orm(db_item)
 
@@ -74,8 +73,8 @@ async def update_item(
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> models.Item:
     print("update_item", item)
-    data = item.dict()
-    db_item = await session.get(DBItem, item_id)
+    data = item.model_dump()
+    db_item = await session.get(models.DBItem, item_id)
     db_item.sqlmodel_update(data)
     session.add(db_item)
     await session.commit()
@@ -90,7 +89,7 @@ async def delete_item(
     current_user: Annotated[models.User, Depends(deps.get_current_user)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> dict:
-    db_item = await session.get(DBItem, item_id)
+    db_item = await session.get(models.DBItem, item_id)
     await session.delete(db_item)
     await session.commit()
 
