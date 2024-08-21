@@ -8,8 +8,10 @@ from . import users
 
 class BaseTransaction(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-
-    user_id: int | None = 0
+    user_id: int = 0
+    wallet_id: int = 0
+    item_id: int = 0
+    price: float = 0.0
 
 
 class CreatedTransaction(BaseTransaction):
@@ -30,6 +32,12 @@ class DBTransaction(BaseTransaction, SQLModel, table=True):
 
     user_id: int = Field(default=None, foreign_key="users.id")
     user: users.DBUser | None = Relationship()
+
+    wallet_id: int = Field(default=None, foreign_key="wallets.id")
+    wallet: wallets.DBWallet | None = Relationship()
+
+    item_id: int = Field(default=None, foreign_key="items.id")
+    item: items.DBItem | None = Relationship()
 
 
 class TransactionList(BaseModel):

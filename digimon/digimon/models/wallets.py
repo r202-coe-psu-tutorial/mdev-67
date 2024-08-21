@@ -3,12 +3,15 @@ from typing import Optional, List, TYPE_CHECKING
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, SQLModel, create_engine, Session, select, Relationship
 
+import decimal
+
 from . import users
 
 
 class BaseWallet(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     user_id: int | None = None
+    money: float = 0
 
 
 class CreatedWallet(BaseWallet):
